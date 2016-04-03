@@ -2,10 +2,10 @@
 lgtmgen is LGTM converter.
 Too easy to convert your favorite pictures.
 
-** Before **
+**Before**
 ![](https://cloud.githubusercontent.com/assets/6947393/14233257/690a0228-f9fe-11e5-8d2f-5ece3b7b3ba9.jpg)
 
-** After **
+**After**
 ![](https://cloud.githubusercontent.com/assets/6947393/14233259/7af4a416-f9fe-11e5-811b-974523a442e7.jpg)
 
 ## Installation
