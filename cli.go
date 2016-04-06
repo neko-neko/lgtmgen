@@ -20,21 +20,22 @@ THE SOFTWARE.
 package main
 
 import (
-	"flag"
-	"io"
-	"os"
-	"image"
 	"bytes"
-	"sync"
+	"flag"
 	"fmt"
-	"strings"
-	"path/filepath"
-	"io/ioutil"
 	"github.com/disintegration/imaging"
 	"github.com/neko-neko/lgtmgen/images"
+	"image"
+	"io"
+	"io/ioutil"
+	"os"
+	"path/filepath"
+	"runtime"
+	"strings"
+	"sync"
 )
 
-// MaskImagePath
+// MaskImage is load mask image path
 const MaskImage = "images/lgtm_mask.png"
 
 // Exit codes are int values that represent an exit code for a particular error.
@@ -119,27 +120,24 @@ func (cli *CLI) Run(args []string) int {
 		go func(filePath string) {
 			defer wg.Done()
 
-			maskedImage, mask_err := overlayImage(filePath, maskImage)
-			if mask_err != nil {
-				fmt.Fprintf(cli.errStream, "[%s] %s\n", mask_err, filePath)
-				return
+			maskedImage, maskErr := overlayImage(filePath, maskImage)
+			if maskErr != nil {
+				fmt.Fprintf(cli.errStream, "[%s] %s\n", maskErr, filePath)
+				runtime.Goexit()
 			}
 
 			// generate output file path
-			b := bytes.NewBuffer(make([]byte, 0))
-			b.WriteString(output)
-			b.WriteString(filepath.Base(filePath))
-			outputFilePath := b.String()
+			outputFilePath := output + filepath.Base(filePath)
 
 			// save image file
 			if existFile(outputFilePath) && !force {
 				fmt.Fprintf(cli.errStream, "[already exists] %s\n", outputFilePath)
-				return
+				runtime.Goexit()
 			}
-			save_err := imaging.Save(maskedImage, outputFilePath)
-			if save_err != nil {
-				fmt.Fprintf(cli.errStream, "[%s] %s\n", mask_err, filePath)
-				return
+			saveErr := imaging.Save(maskedImage, outputFilePath)
+			if saveErr != nil {
+				fmt.Fprintf(cli.errStream, "[%s] %s\n", maskErr, filePath)
+				runtime.Goexit()
 			}
 			fmt.Printf("[success] %s\n", outputFilePath)
 		}(filePath)
@@ -155,11 +153,8 @@ func addDirectorySuffix(directoryPath string) string {
 	if strings.HasSuffix(directoryPath, "/") {
 		return directoryPath
 	}
-	b := bytes.NewBuffer(make([]byte, 0))
-	b.WriteString(directoryPath)
-	b.WriteString("/")
 
-	return b.String()
+	return directoryPath + "/"
 }
 
 // Load mask image
@@ -189,11 +184,7 @@ func readImagePaths(target string) []string {
 			continue
 		}
 
-		b := bytes.NewBuffer(make([]byte, 0))
-		b.WriteString(target)
-		b.WriteString(fileInfo.Name())
-
-		filesPaths = append(filesPaths, b.String())
+		filesPaths = append(filesPaths, target+fileInfo.Name())
 	}
 
 	return filesPaths
