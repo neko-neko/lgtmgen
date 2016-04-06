@@ -104,7 +104,7 @@ func (cli *CLI) Run(args []string) int {
 	output = addDirectorySuffix(output)
 
 	// load mask image
-	maskImage, err := loadMaskImage(MaskImage)
+	maskImage, width, height, err := loadMaskImage(MaskImage)
 	if err != nil {
 		fmt.Fprintf(cli.errStream, "fatal error %s.\n", err)
 		return ExitCodeError
@@ -120,7 +120,7 @@ func (cli *CLI) Run(args []string) int {
 		go func(filePath string) {
 			defer wg.Done()
 
-			maskedImage, maskErr := overlayImage(filePath, maskImage)
+			maskedImage, maskErr := overlayImage(filePath, maskImage, width, height)
 			if maskErr != nil {
 				fmt.Fprintf(cli.errStream, "[%s] %s\n", maskErr, filePath)
 				runtime.Goexit()
@@ -158,15 +158,19 @@ func addDirectorySuffix(directoryPath string) string {
 }
 
 // Load mask image
-func loadMaskImage(maskImage string) (image.Image, error) {
+func loadMaskImage(maskImage string) (image.Image, int, int, error) {
 	imageByte, err := images.Asset(maskImage)
 	if err != nil {
-		return nil, err
+		return nil, 0, 0, err
 	}
 
 	// convert []byte to Image.image
 	img, _, _ := image.Decode(bytes.NewReader(imageByte))
-	return img, nil
+
+	// load mask image config
+	size := img.Bounds().Size()
+
+	return img, size.X, size.Y, nil
 }
 
 // Get target image paths from target dir
@@ -191,13 +195,14 @@ func readImagePaths(target string) []string {
 }
 
 // Execute mask
-func overlayImage(file string, maskImage image.Image) (*image.NRGBA, error) {
+func overlayImage(file string, maskImage image.Image, width int, height int) (*image.NRGBA, error) {
 	srcImage, err := imaging.Open(file)
 	if err != nil {
 		return nil, err
 	}
 
-	maskedImage := imaging.OverlayCenter(srcImage, maskImage, 1.0)
+	resizedImage := imaging.Resize(srcImage, width, height, imaging.Box)
+	maskedImage := imaging.OverlayCenter(resizedImage, maskImage, 1.0)
 	return maskedImage, nil
 }
 
