@@ -1,5 +1,5 @@
 # lgtmgen
-lgtmgen is LGTM converter.  
+lgtmgen is LGTM image generator.  
 Too easy to convert your favorite pictures.  
 
 **Before**  
@@ -32,9 +32,9 @@ Usage of lgtmgen:
     	Input directory path(Short)
   -directory string
     	Input directory path
-  -f	Force overwrite if outputfile exists(Short)
+  -f	Force overwrite if output file exists(Short)
   -force
-    	Force overwrite if outputfile exists
+    	Force overwrite if output file exists
   -o string
     	Output directory path(Short)
   -output string
