@@ -20,14 +20,11 @@ THE SOFTWARE.
 package main
 
 import (
-	"bytes"
 	"flag"
 	"fmt"
 	"github.com/disintegration/imaging"
-	"github.com/neko-neko/lgtmgen/images"
-	"image"
+	"github.com/neko-neko/lgtmgen/mask_image"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -104,14 +101,15 @@ func (cli *CLI) Run(args []string) int {
 	output = addDirectorySuffix(output)
 
 	// load mask image
-	maskImage, width, height, err := loadMaskImage(MaskImage)
+	mask := mask_image.NewMaskImage()
+	err := mask.LoadMaskImage(MaskImage)
 	if err != nil {
 		fmt.Fprintf(cli.errStream, "fatal error %s.\n", err)
 		return ExitCodeError
 	}
 
 	// load target images
-	filePaths := readImagePaths(directory)
+	filePaths := mask.ReadImagePaths(directory)
 
 	// mask images
 	wg := &sync.WaitGroup{}
@@ -120,7 +118,7 @@ func (cli *CLI) Run(args []string) int {
 		go func(filePath string) {
 			defer wg.Done()
 
-			maskedImage, maskErr := overlayImage(filePath, maskImage, width, height)
+			maskedImage, maskErr := mask.OverlayImage(filePath, mask.MaskImage, mask.Width, mask.Height)
 			if maskErr != nil {
 				fmt.Fprintf(cli.errStream, "[%s] %s\n", maskErr, filePath)
 				runtime.Goexit()
@@ -148,62 +146,14 @@ func (cli *CLI) Run(args []string) int {
 }
 
 // Add directory suffix
-// eg: directoryPath="/tmp" => directoryPath="/tmp/"
+// e.g.
+// directoryPath="/tmp" => directoryPath="/tmp/"
 func addDirectorySuffix(directoryPath string) string {
 	if strings.HasSuffix(directoryPath, "/") {
 		return directoryPath
 	}
 
 	return directoryPath + "/"
-}
-
-// Load mask image
-func loadMaskImage(maskImage string) (image.Image, int, int, error) {
-	imageByte, err := images.Asset(maskImage)
-	if err != nil {
-		return nil, 0, 0, err
-	}
-
-	// convert []byte to Image.image
-	img, _, _ := image.Decode(bytes.NewReader(imageByte))
-
-	// load mask image config
-	size := img.Bounds().Size()
-
-	return img, size.X, size.Y, nil
-}
-
-// Get target image paths from target dir
-func readImagePaths(target string) []string {
-	files, err := ioutil.ReadDir(target)
-	if err != nil {
-		panic(err)
-	}
-
-	// create full path lists
-	var filesPaths []string
-	for _, fileInfo := range files {
-		// skip directory
-		if fileInfo.IsDir() {
-			continue
-		}
-
-		filesPaths = append(filesPaths, target+fileInfo.Name())
-	}
-
-	return filesPaths
-}
-
-// Execute mask
-func overlayImage(file string, maskImage image.Image, width int, height int) (*image.NRGBA, error) {
-	srcImage, err := imaging.Open(file)
-	if err != nil {
-		return nil, err
-	}
-
-	resizedImage := imaging.Resize(srcImage, width, height, imaging.Box)
-	maskedImage := imaging.OverlayCenter(resizedImage, maskImage, 1.0)
-	return maskedImage, nil
 }
 
 // Exists file
