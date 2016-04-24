@@ -137,7 +137,7 @@ func (cli *CLI) Run(args []string) int {
 				fmt.Fprintf(cli.errStream, "[%s] %s\n", maskErr, filePath)
 				runtime.Goexit()
 			}
-			fmt.Printf("[success] %s\n", outputFilePath)
+			fmt.Fprintf("[success] %s\n", outputFilePath)
 		}(filePath)
 	}
 	wg.Wait()
