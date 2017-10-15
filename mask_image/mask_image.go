@@ -2,23 +2,24 @@ package mask_image
 
 import (
 	"bytes"
-	"github.com/disintegration/imaging"
-	"github.com/neko-neko/lgtmgen/images"
 	"image"
 	"io/ioutil"
+
+	"github.com/disintegration/imaging"
+	"github.com/neko-neko/lgtmgen/images"
 )
 
 type MaskImage struct {
-	Width int
-	Height int
+	Width     int
+	Height    int
 	MaskImage image.Image
 }
 
 // constructor
 func NewMaskImage() *MaskImage {
 	return &MaskImage{
-		Width: 0,
-		Height: 0,
+		Width:     0,
+		Height:    0,
 		MaskImage: nil,
 	}
 }

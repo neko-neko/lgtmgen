@@ -1,6 +1,6 @@
 /*
 The MIT License (MIT)
-Copyright (c) 2016 neko-neko.
+Copyright (c) 2017 neko-neko.
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
 in the Software without restriction, including without limitation the rights
@@ -22,14 +22,15 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/disintegration/imaging"
-	"github.com/neko-neko/lgtmgen/mask_image"
 	"io"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
 	"sync"
+
+	"github.com/disintegration/imaging"
+	"github.com/neko-neko/lgtmgen/mask_image"
 )
 
 // MaskImage is load mask image path
@@ -137,7 +138,7 @@ func (cli *CLI) Run(args []string) int {
 				fmt.Fprintf(cli.errStream, "[%s] %s\n", maskErr, filePath)
 				runtime.Goexit()
 			}
-			fmt.Fprintf("[success] %s\n", outputFilePath)
+			fmt.Fprintf(cli.outStream, "[success] %s\n", outputFilePath)
 		}(filePath)
 	}
 	wg.Wait()
